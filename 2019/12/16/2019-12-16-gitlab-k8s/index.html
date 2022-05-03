@@ -1,0 +1,221 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title> GitLab 连接 K8S 集群  | 权掌天下</title><meta name="keywords" content="Gitlab"><meta name="author" content="LIKE-YCY"><meta name="copyright" content="LIKE-YCY"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="用 GitLab 连接 Kubernetes 需要明确以下几点内容：  目标集群的 API 连接地址； 集群的 CA 证书； 基于RBAC 的特定 ServiceAccount 的 Token； 需要部署 pod 到哪个 NameSpace；  获取集群的 API 连接地址 获取集群的 API 连接地址可以用如下命令查看： $ kubectl cluster-infoKubernetes mast">
+<meta property="og:type" content="article">
+<meta property="og:title" content=" GitLab 连接 K8S 集群 ">
+<meta property="og:url" content="https://like-ycy.github.io/2019/12/16/2019-12-16-gitlab-k8s/index.html">
+<meta property="og:site_name" content="权掌天下">
+<meta property="og:description" content="用 GitLab 连接 Kubernetes 需要明确以下几点内容：  目标集群的 API 连接地址； 集群的 CA 证书； 基于RBAC 的特定 ServiceAccount 的 Token； 需要部署 pod 到哪个 NameSpace；  获取集群的 API 连接地址 获取集群的 API 连接地址可以用如下命令查看： $ kubectl cluster-infoKubernetes mast">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://i.loli.net/2020/05/01/gkihqEjXxJ5UZ1C.jpg">
+<meta property="article:published_time" content="2019-12-15T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-12-10T01:13:49.243Z">
+<meta property="article:author" content="LIKE-YCY">
+<meta property="article:tag" content="Gitlab">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2020/05/01/gkihqEjXxJ5UZ1C.jpg"><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://like-ycy.github.io/2019/12/16/2019-12-16-gitlab-k8s/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: {"limitDay":180,"position":"top","messagePrev":"注意：这篇文章距离上次更新已有","messageNext":"天了，文章的内容可能已过时。"},
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'mediumZoom',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#121212","position":"top-center"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: true,
+  islazyload: true,
+  isAnchor: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: ' GitLab 连接 K8S 集群 ',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: false,
+  postUpdate: '2021-12-10 09:13:49'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const now = new Date()
+          const hour = now.getHours()
+          const isNight = hour <= 6 || hour >= 18
+          if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+          else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom@v1.css"><link rel="stylesheet" href="/css/color@v1.css"><meta name="generator" content="Hexo 6.0.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src= "/img/loading.gif" data-lazy-src="/img/favicon.ico" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">48</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">22</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-compass"></i><span> 文章</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间线</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://i.loli.net/2020/05/01/gkihqEjXxJ5UZ1C.jpg')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">权掌天下</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-compass"></i><span> 文章</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间线</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title"> GitLab 连接 K8S 集群 </h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2019-12-15T16:00:00.000Z" title="发表于 2019-12-16 00:00:00">2019-12-16</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2021-12-10T01:13:49.243Z" title="更新于 2021-12-10 09:13:49">2021-12-10</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">861</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>3分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=" GitLab 连接 K8S 集群 "><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p>用 <code>GitLab</code> 连接 <code>Kubernetes</code> 需要明确以下几点内容：</p>
+<ul>
+<li>目标集群的 API 连接地址；</li>
+<li>集群的 CA 证书；</li>
+<li>基于RBAC 的特定 ServiceAccount 的 Token；</li>
+<li>需要部署 pod 到哪个 NameSpace；</li>
+</ul>
+<p><strong>获取集群的 API 连接地址</strong></p>
+<p>获取集群的 API 连接地址可以用如下命令查看：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ kubectl cluster-info</span><br><span class="line">Kubernetes master is running at https://59.110.217.141:6443</span><br><span class="line">metrics-server is running at https://59.110.217.141:6443/api/v1/namespaces/kube-system/services/heapster/proxy</span><br><span class="line">KubeDNS is running at https://59.110.217.141:6443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">命令输出内容可以很快知道集群的连接地址是：https://59.110.217.141:6443</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>需要注意的是，有时候集群的连接地址分为公网地址和内网地址，这个时候可以根据需求自己做取舍，轻课的 GitLab 和阿里云的 Kubernetes 集群没有打通，一般用的是公网地址</p>
+</blockquote>
+<p><strong>集群 CA 证书</strong></p>
+<p>一般一个集群的 CA 证书是唯一的，所以只需弄一次即可，以后就可以重复利用。</p>
+<p>比如说，我们要在某个集群中的 <code>gatlin</code> 命名空间中部署我们的微服务应用，我们需要创建一个 <code>ServiceAccount</code> 并绑定某个 <code>Role</code> 来获取该命名空间的特定权限。</p>
+<p>一般情况下，在 <code>kubernetes</code> 集群中创建某个 <code>sa</code> 会对应生成该<code>sa</code> 的 <code>secret</code>，我们可以通过该 <code>secret</code> 的具体信息获取整个集群的 <code>CA</code> 证书和对应 <code>sa</code> 的 <code>token</code></p>
+<p><strong>创建对应命名空间的 ServiceAccount</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ kubectl -n gatlin create sa gatlin-admin</span><br><span class="line">为了规范管理，以后所用 ns 的 sa 统一格式为 &lt;NS-NAME&gt;-admin</span><br></pre></td></tr></table></figure>
+
+<p><strong>查看对应命名空间的 ServiceAccount</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ kubectl -n gatlin get serviceaccounts</span><br><span class="line">NAME                     SECRETS   AGE</span><br><span class="line">default                  1         20h</span><br><span class="line">gatlin-admin             1         103m</span><br></pre></td></tr></table></figure>
+
+<p><strong>给新建的 SA 绑定 Role</strong></p>
+<p>对于权限这块，我一般都是直接绑定名称为 admin 的集群角色，这样该 sa 就获得了该 ns 的管理员权限，而这个 sa 对其他 ns 是没有任何权限的，符合 ci 流程。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ kubectl -n gatlin create clusterrolebinding gatlin-ns-admin --clusterrole=admin --serviceaccount=gatlin:gatlin-admin</span><br></pre></td></tr></table></figure>
+
+<p><strong>查看自动生成的 secret</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ kubectl get secrets -n gatlin</span><br><span class="line">NAME                                 TYPE                                  DATA   AGE</span><br><span class="line">default-token-fgw4s                  kubernetes.io/service-account-token   3      20h</span><br><span class="line">gatlin-admin-token-78pqk             kubernetes.io/service-account-token   3      108m</span><br><span class="line">gatlin-service-account-token-nwhh2   kubernetes.io/service-account-token   3      88m</span><br><span class="line">gatlin-token                         kubernetes.io/service-account-token   3      88m</span><br><span class="line">然后用自动生成的 secret 查看集群 CA 证书就可以了：</span><br><span class="line">$ kubectl -n gatlin get secrets gatlin-admin-token-78pqk -o jsonpath=<span class="string">&quot;&#123;[&#x27;data&#x27;][&#x27;ca\.crt&#x27;]&#125;&quot;</span> | base64 -d</span><br><span class="line">-----BEGIN CERTIFICATE-----</span><br><span class="line">MIIDGjCCAgKgAwIBAgIBADANBgkqhkiG9w0BAQsFADA+MScwFAYDVQQKEw1hbGli</span><br><span class="line">YWJhIGNsb3VkMA8GA1UEChMIaGFuZ3pob3UxEzARBgNVBAMTCmt1YmVybmV0ZXMw</span><br><span class="line">HhcNMTkwNDIzMDkyMjI5WhcNMjkwNDIwMDkyMjI5WjA+MScwFAYDVQQKEw1hbGli</span><br><span class="line">YWJhIGNsb3VkMA8GA1UEChMIaGFuZ3pob3UxEzARBgNVBAMTCmt1YmVybmV0ZXMw</span><br><span class="line">ggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCrNkXt3CB9HewGw6FLorrm</span><br><span class="line">rpYqLxsNhouv61d5nbyD1mxcIQAlK879yFmEfvs6Mo1kp0X/BalTBR6tLvXnQrv6</span><br><span class="line">t89n8sflmK5eaw4XVi+bpvVxyG2EyI0VBMzI77y5XYVkg0dD90lTfVyuLYx0h5e7</span><br><span class="line">g5/SQmXBvSFotN6+ci3eZDDHluOr72QPLnRukWZNfJfQa5njTb53AxyHEV/qk35N</span><br><span class="line">TfI7Er4GEAHniRjbg3zBHypIGc2XQlBROvON/CGehUI20agi+LZ6cNwDeYMQvbMa</span><br><span class="line">Vc3hMlQRrscfwKWwiHumdCv1B6ALoF6dtqJp3ry+MS4VTnMc5ZdCsBRa64aaA61/</span><br><span class="line">AgMBAAGjIzAhMA4GA1UdDwEB/wQEAwICpDAPBgNVHRMBAf8EBTADAQH/MA0GCSqG</span><br><span class="line">SIb3DQEBCwUAA4IBAQAetfaOvLN7eklSZRnWBOqZN30ohgN9na/q+vsdtrFSqpRi</span><br><span class="line">qeWCE0IIb0G8188J8ITLczgT3h3BrMOvh3KTrIre1+P6zH2bRdfhFD4upbYQRIpL</span><br><span class="line">WYaEPxsEihjQFGhpOrvgJVdYpMC1/m09Ili9C82f1hZQp1S0+a0lvRXfR/ox76mv</span><br><span class="line">Z2CKoXcP7n2uoh4cVbta8B1r4RSLwdBybWNAkD6NMPZ53LphRLdNaN1KvQJmAkOG</span><br><span class="line">X7MiAZeupX+jz0mW+m+cWN0ftiUAuqsaPAfMOg6JgxHpM44WU+wu2aduFxKXzzud</span><br><span class="line">Xns1hh44sDQ5vg5JhNd/06tyy2NiaqZRDRJ+ie1ewrwerjewrewj</span><br><span class="line">-----END CERTIFICATE-----</span><br></pre></td></tr></table></figure>
+
+<p>然后就可以看到神奇的 CA 证书了，哈哈。</p>
+<p><strong>获取特定 ServiceAccount 的 Token</strong></p>
+<p>获取 token 的时候直接用上面的 secret 即可：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ kubectl -n gatlin get secrets gatlin-admin-token-78pqk -o jsonpath=&#123;.data.token&#125; | base64 -d</span><br></pre></td></tr></table></figure>
+
+<p>记得将上述命令输出的 token 保存一下就可以，因为 token 太长而且没有自动换行，这里就不贴了。</p>
+<p><strong>配置 GitLab</strong></p>
+<p>上面的工作做完了，配置 GitLab 连接 Kubernetes 集群就简单多了，『运维』–『Kubernetes』–『Add existing cluster』,然后直接把上述信息复制粘贴到对应框框里就行了</p>
+<p><img src= "/img/loading.gif" data-lazy-src="https://gitee.com/like-ycy/images/raw/master/blog/2019-12-16/gitlab-k8s.png" alt="avatar"></p>
+<p><em><strong>需要注意的是每个命名空间对应的 token 都不一样，不要盲目复制粘贴，还有就是如果配置错误需要将添加的集群删掉重建，有时候可能因为缓存的问题导致连接集群失败，这是重点，切记！！！</strong></em></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">LIKE-YCY</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://like-ycy.github.io/2019/12/16/2019-12-16-gitlab-k8s/">https://like-ycy.github.io/2019/12/16/2019-12-16-gitlab-k8s/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://like-ycy.github.io" target="_blank">权掌天下</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Gitlab/">Gitlab</a></div><div class="post_share"><div class="social-share" data-image="https://i.loli.net/2020/05/01/gkihqEjXxJ5UZ1C.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2019/12/19/2019-12-19-nginx-usage/"><img class="prev-cover" src= "/img/loading.gif" data-lazy-src="https://cdn.jsdelivr.net/gh/jerryc127/CDN/img/material-8.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info"> Nginx的这些妙用，你肯定有不知道的 </div></div></a></div><div class="next-post pull-right"><a href="/2019/12/14/2019-12-14-execution/"><img class="next-cover" src= "/img/loading.gif" data-lazy-src="https://cdn.jsdelivr.net/gh/jerryc127/CDN/img/material-5.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info"> 执行力，才是拉开人与人差距的关键 </div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2020/01/07/2020-01-07-sonarqube-and-gitlab/" title=" sonarqube 搭配gitlab-ci "><img class="cover" src= "/img/loading.gif" data-lazy-src="https://cdn.jsdelivr.net/gh/jerryc127/CDN/img/material-2.png" alt="cover"><div class="content is-center"><div class="date"><i class="fas fa-history fa-fw"></i> 2021-12-10</div><div class="title"> sonarqube 搭配gitlab-ci </div></div></a></div><div><a href="/2020/01/06/2020-01-06-sonarqube-install/" title=" Docker安装sonarqube "><img class="cover" src= "/img/loading.gif" data-lazy-src="https://cdn.jsdelivr.net/gh/jerryc127/CDN/img/material-10.png" alt="cover"><div class="content is-center"><div class="date"><i class="fas fa-history fa-fw"></i> 2021-12-10</div><div class="title"> Docker安装sonarqube </div></div></a></div><div><a href="/2020/01/03/2020-01-03-gitlab-ci/" title=" Gitlab-CI 流程 "><img class="cover" src= "/img/loading.gif" data-lazy-src="https://cdn.jsdelivr.net/gh/jerryc127/CDN/img/material-9.png" alt="cover"><div class="content is-center"><div class="date"><i class="fas fa-history fa-fw"></i> 2021-12-10</div><div class="title"> Gitlab-CI 流程 </div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src= "/img/loading.gif" data-lazy-src="/img/favicon.ico" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">LIKE-YCY</div><div class="author-info__description">权掌天下的博客</div></div><div class="card-info-data is-center"><div class="card-info-data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">48</div></a></div><div class="card-info-data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">22</div></a></div><div class="card-info-data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/like-ycy/"><i class="fab fa-github"></i><span>Follow Me Github</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/like-ycy" target="_blank" title="Github"><i class="fab fa-github"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2022/02/06/2022-02-06-githubactions-pull-images/" title="无法拉取 gcr.io 镜像？用魔法来打败魔法"><img src= "/img/loading.gif" data-lazy-src="https://cdn.jsdelivr.net/gh/jerryc127/CDN/img/material-2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="无法拉取 gcr.io 镜像？用魔法来打败魔法"/></a><div class="content"><a class="title" href="/2022/02/06/2022-02-06-githubactions-pull-images/" title="无法拉取 gcr.io 镜像？用魔法来打败魔法">无法拉取 gcr.io 镜像？用魔法来打败魔法</a><time datetime="2022-02-05T16:00:00.000Z" title="发表于 2022-02-06 00:00:00">2022-02-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2021/12/23/2021-12-23-k8s-gitlabci-layer/" title=" Gitlab CI 在 Kubernetes 中的 Docker 缓存 "><img src= "/img/loading.gif" data-lazy-src="/img/background/header-background.webp" onerror="this.onerror=null;this.src='/img/404.jpg'" alt=" Gitlab CI 在 Kubernetes 中的 Docker 缓存 "/></a><div class="content"><a class="title" href="/2021/12/23/2021-12-23-k8s-gitlabci-layer/" title=" Gitlab CI 在 Kubernetes 中的 Docker 缓存 "> Gitlab CI 在 Kubernetes 中的 Docker 缓存 </a><time datetime="2021-12-22T16:00:00.000Z" title="发表于 2021-12-23 00:00:00">2021-12-23</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2021/12/23/2021-12-23-python-underline-rules/" title=" Python下划线的5个潜规则 "><img src= "/img/loading.gif" data-lazy-src="https://cdn.jsdelivr.net/gh/jerryc127/CDN/img/material-7.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt=" Python下划线的5个潜规则 "/></a><div class="content"><a class="title" href="/2021/12/23/2021-12-23-python-underline-rules/" title=" Python下划线的5个潜规则 "> Python下划线的5个潜规则 </a><time datetime="2021-12-22T16:00:00.000Z" title="发表于 2021-12-23 00:00:00">2021-12-23</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2021/12/09/2021-12-09-linux-history/" title=" Linux History命令及其配置 "><img src= "/img/loading.gif" data-lazy-src="/img/background/header-background.webp" onerror="this.onerror=null;this.src='/img/404.jpg'" alt=" Linux History命令及其配置 "/></a><div class="content"><a class="title" href="/2021/12/09/2021-12-09-linux-history/" title=" Linux History命令及其配置 "> Linux History命令及其配置 </a><time datetime="2021-12-08T16:00:00.000Z" title="发表于 2021-12-09 00:00:00">2021-12-09</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2021/11/08/2021-11-08-redis-acl/" title=" Redis 访问控制列表(ACL) "><img src= "/img/loading.gif" data-lazy-src="/img/background/header-background.webp" onerror="this.onerror=null;this.src='/img/404.jpg'" alt=" Redis 访问控制列表(ACL) "/></a><div class="content"><a class="title" href="/2021/11/08/2021-11-08-redis-acl/" title=" Redis 访问控制列表(ACL) "> Redis 访问控制列表(ACL) </a><time datetime="2021-11-08T11:40:00.000Z" title="发表于 2021-11-08 19:40:00">2021-11-08</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('https://i.loli.net/2020/05/01/gkihqEjXxJ5UZ1C.jpg')"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2022 By LIKE-YCY</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">Hi, welcome to my <a href="https://like-ycy.github.io/">blog</a>!</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">本地搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div></div></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom/dist/medium-zoom.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script>function panguFn () {
+  if (typeof pangu === 'object') pangu.autoSpacingPage()
+  else {
+    getScript('https://cdn.jsdelivr.net/npm/pangu/dist/browser/pangu.min.js')
+      .then(() => {
+        pangu.autoSpacingPage()
+      })
+  }
+}
+
+function panguInit () {
+  if (false){
+    GLOBAL_CONFIG_SITE.isPost && panguFn()
+  } else {
+    panguFn()
+  }
+}
+
+document.addEventListener('DOMContentLoaded', panguInit)</script><script src="/js/search/local-search.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
