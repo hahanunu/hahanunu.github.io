@@ -45,9 +45,9 @@
       
         <tags>
             
-            <tag> Docker </tag>
-            
             <tag> Kubernetes </tag>
+            
+            <tag> Docker </tag>
             
             <tag> CI/CD </tag>
             
